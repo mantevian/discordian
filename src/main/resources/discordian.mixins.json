@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.fabricmc.mante.discordian.mixin",
+  "compatibilityLevel": "JAVA_16",
+  "mixins": [
+    "PlayerManagerMixin",
+    "ServerPlayNetworkHandlerMixin",
+    "TellrawCommandMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

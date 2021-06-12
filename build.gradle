@@ -1,0 +1,88 @@
+plugins {
+    id 'fabric-loom' version '0.8-SNAPSHOT'
+    id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
+
+archivesBaseName = project.archives_base_name
+version = project.mod_version
+group = project.maven_group
+
+configurations {
+    shade
+}
+
+dependencies {
+    //to change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
+    // You may need to force-disable transitiveness on them.
+    include(implementation("net.dv8tion:JDA:4.2.1_262") {
+        exclude module: 'opus-java'
+    })
+
+    include "net.sf.trove4j:trove4j:3.0.3"
+    include "com.fasterxml.jackson.core:jackson-databind:2.10.1"
+    include "com.fasterxml.jackson.core:jackson-annotations:2.10.1"
+    include "com.fasterxml.jackson.core:jackson-core:2.10.1"
+    include "com.neovisionaries:nv-websocket-client:2.14"
+    include "org.apache.commons:commons-collections4:4.1"
+    include "com.squareup.okhttp3:okhttp:3.13.0"
+    include "com.squareup.okio:okio:1.17.2"
+
+    shade "net.sf.trove4j:trove4j:3.0.3"
+    shade "com.fasterxml.jackson.core:jackson-databind:2.10.1"
+    shade "com.fasterxml.jackson.core:jackson-annotations:2.10.1"
+    shade "com.fasterxml.jackson.core:jackson-core:2.10.1"
+    shade "com.neovisionaries:nv-websocket-client:2.14"
+    shade "org.apache.commons:commons-collections4:4.1"
+    shade "com.squareup.okhttp3:okhttp:3.13.0"
+    shade "com.squareup.okio:okio:1.17.2"
+
+    shade "net.dv8tion:JDA:4.2.1_262"
+}
+
+repositories {
+    mavenCentral() // for transitive dependencies
+    maven {
+        name 'm2-dv8tion'
+        url 'https://m2.dv8tion.net/releases'
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include "fabric.mod.json"
+        expand "version": project.version
+        duplicatesStrategy(DuplicatesStrategy.WARN)
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude "fabric.mod.json"
+        duplicatesStrategy(DuplicatesStrategy.WARN)
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
+}
+
+jar {
+    from "LICENSE"
+}
