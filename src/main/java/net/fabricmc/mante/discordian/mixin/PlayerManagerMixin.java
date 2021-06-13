@@ -20,9 +20,10 @@ public class PlayerManagerMixin {
     public void broadcastChatMessage(Text message, MessageType type, UUID senderUuid, CallbackInfo ci) {
         String text = message.getString();
 
-        Pattern pattern = Pattern.compile(".+ » .+", Pattern.DOTALL);
+        Pattern patternDefault = Pattern.compile(".+ » .+", Pattern.DOTALL);
+        Pattern patternReply = Pattern.compile("┌ .+ ».+", Pattern.DOTALL);
 
-        if (text.isEmpty() || pattern.matcher(text).matches() || DiscordUtil.isBlacklistedMessageMTD(text))
+        if (text.isEmpty() || patternDefault.matcher(text).matches() || patternReply.matcher(text).matches() || DiscordUtil.isBlacklistedMessageMTD(text))
             return;
 
         TextChannel channel = Discordian.jda.getTextChannelById(Discordian.channelID);

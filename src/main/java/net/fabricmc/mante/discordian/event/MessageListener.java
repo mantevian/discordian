@@ -226,13 +226,7 @@ public class MessageListener extends ListenerAdapter {
     public void handleCommands() {
         switch (content.split(" ")[0].substring(1)) {
             case "tps" -> {
-                long[] ticks = Discordian.server.lastTickLengths;
-                double avgTick = 0;
-                for (long l : ticks)
-                    avgTick += l;
-                avgTick /= ticks.length;
-                avgTick /= 1000000;
-                message.getChannel().sendMessage("TPS: " + (Math.round(10000 / avgTick) / 10) + " (" + (Math.round(MathHelper.clamp(1000 / avgTick, 0, 20) * 10) / 10) + " effective, " + (Math.round(avgTick * 10) / 10) + " MSPT)")
+                message.getChannel().sendMessage("TPS: " + (Math.round(10000 / DiscordUtil.avgTick()) / 10d) + " (" + (Math.round(MathHelper.clamp(1000 / DiscordUtil.avgTick(), 0, 20) * 10) / 10d) + " effective, " + (Math.round(DiscordUtil.avgTick() * 10) / 10d) + " MSPT)")
                         .reference(message).mentionRepliedUser(false).queue();
             }
             case "players" -> {

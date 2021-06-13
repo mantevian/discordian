@@ -1,5 +1,7 @@
 package net.fabricmc.mante.discordian;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -14,10 +16,12 @@ import net.fabricmc.mante.discordian.event.MessageListener;
 import net.fabricmc.mante.discordian.event.ReadyEventListener;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
+import java.util.ArrayList;
 
 public class Discordian implements DedicatedServerModInitializer {
     public static MinecraftServer server;
@@ -92,19 +96,23 @@ public class Discordian implements DedicatedServerModInitializer {
         });
 
         ServerTickEvents.END_SERVER_TICK.register(s -> {
-            if (s.getTicks() % (20 * 20) == 0) {
-                jda.getPresence().setActivity(Activity.playing("with " + s.getCurrentPlayerCount() + " player" + (s.getCurrentPlayerCount() > 1 ? "s" : "")));
+            JsonArray strings = config.get("statuses").getAsJsonArray();
+
+            for (int i = 0; i < strings.size(); i++) {
+                String str = strings.get(i).getAsString();
+
+                str = str.replaceAll("\\{players}", String.valueOf(s.getCurrentPlayerCount()));
+                str = str.replaceAll("\\{tps}", String.valueOf(Math.round(MathHelper.clamp(1000 / DiscordUtil.avgTick(), 0, 20) * 10) / 10d));
+
+                if (s.getTicks() % (20 * 20 * strings.size()) == 20 * 20 * i)
+                    jda.getPresence().setActivity(Activity.playing(str));
             }
         });
     }
 
     public static ServerCommandSource discordCommandSource() {
         int opLevel = config.get("op_level").getAsInt();
-        if (opLevel < 1)
-            opLevel = 1;
-
-        if (opLevel > 4)
-            opLevel = 4;
+        opLevel = MathHelper.clamp(opLevel, 1, 4);
 
         return new ServerCommandSource(
                 new DiscordCommandOutput(),

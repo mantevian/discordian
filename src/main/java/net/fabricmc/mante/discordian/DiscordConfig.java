@@ -25,6 +25,10 @@ public class DiscordConfig {
     }
 
     public static JsonObject defaultConfig() {
+        JsonArray statuses = new JsonArray();
+        statuses.add("at {tps} TPS");
+        statuses.add("with {players} player(s)");
+
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("version", VERSION);
         jsonObject.addProperty("token", "");
@@ -42,6 +46,7 @@ public class DiscordConfig {
         jsonObject.addProperty("op_level", 4);
         jsonObject.add("blacklisted_minecraft_to_discord", new JsonArray());
         jsonObject.add("blacklisted_discord_to_minecraft", new JsonArray());
+        jsonObject.add("statuses", statuses);
         return jsonObject;
     }
 

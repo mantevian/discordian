@@ -68,4 +68,15 @@ public class DiscordUtil {
 
         return Integer.parseInt(color.substring(1, 7), 16);
     }
+
+    public static double avgTick() {
+        long[] ticks = Discordian.server.lastTickLengths;
+        double avgTick = 0;
+        for (long l : ticks)
+            avgTick += l;
+        avgTick /= ticks.length;
+        avgTick /= 1000000;
+
+        return avgTick;
+    }
 }
