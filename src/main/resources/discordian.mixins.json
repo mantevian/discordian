@@ -4,7 +4,9 @@
   "package": "net.fabricmc.mante.discordian.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "PlayerAdvancementTrackerMixin",
     "PlayerManagerMixin",
+    "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin",
     "TellrawCommandMixin"
   ],

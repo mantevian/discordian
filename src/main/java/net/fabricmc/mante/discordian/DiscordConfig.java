@@ -40,6 +40,7 @@ public class DiscordConfig {
         jsonObject.addProperty("send_advancements", true);
         jsonObject.addProperty("send_player_joins", true);
         jsonObject.addProperty("send_player_leaves", true);
+        jsonObject.addProperty("send_player_deaths", true);
         jsonObject.addProperty("send_tellraw", true);
         jsonObject.addProperty("send_replies", true);
         jsonObject.addProperty("op_role_id", "");

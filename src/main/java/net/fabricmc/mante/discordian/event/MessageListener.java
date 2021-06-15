@@ -90,8 +90,8 @@ public class MessageListener extends ListenerAdapter {
 
         if (reply) {
             content = String.join(" ", content.split("\n"));
-            if (content.length() > 30)
-                content = content.substring(0, 29) + " ...";
+            if (content.length() > 60)
+                content = content.substring(0, 59) + " ...";
         }
 
         text.append(clickableText(name, message.getAuthor().getAsTag() + " (click to mention)", TextColor.fromRgb(color),

@@ -11,19 +11,19 @@ Yet another easy to setup Fabric mod that connects Minecraft and Discord chats a
 # What can the mod do?
 This mod, obviously, provides connection between your Minecraft and your Discord chats. And it does so in a fancy clean way.
 ## Minecraft -> Discord
-* Unlike other mods, Discordian doesn't just listen to in-game events like a player dying or getting an advancement, it sends everything from the global chat. Any other mod that broadcasts stuff will have its messages sent to your Discord chat!
-* Another feature that's useful for folks who use datapacks or command blocks: `/tellraw` messages also get transferred to Discord, as long as a message targets every player in the server (e.g. `@a`).
-* Finally, you can click on someone's Discord name to mention them.
+* Sends chat messages, advancements, deaths, player joins and leaves to your Discord chat. Everything notable is sent in an embed.
+* `/tellraw @a` is sent in an embed colored with whatever the first text component is colored.
 
 ![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315065536184340/DiscordCanary_W2GYPmj6rW.png "What it looks like in Discord")
-![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315070061576222/javaw_AvLR4ocMgJ.png "Hover over someone's name")
-![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315080631353415/javaw_YWLSm3BkKG.png "Click on someone's name")
 
 ## Discord -> Minecraft
 * When you type a message in Discord it gets sent to the Minecraft chat. Discordian respects a user's nickname color and will always show it in Minecraft!
 * To avoid any confusion, the Minecraft players will also know when someone edits or replies to another message in Discord.
+* Click on someone's name in the Minecraft chat to insert a mention of them into your chat text box.
 
 ![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315101800005632/javaw_IGC3qm0r9B.png "What it looks like in Minecraft")
+![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315070061576222/javaw_AvLR4ocMgJ.png "Hover over someone's name")
+![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315080631353415/javaw_YWLSm3BkKG.png "Click on someone's name")
 
 ## Commands
 Currently Discordian has 3 commands that are used in the Discord chat, and you can add a Discord role that will work as Operator access in-game. Users with this role can use any Minecraft command in the Discord chat.
@@ -40,6 +40,11 @@ Shows server's TPS (ticks per second).
 > /scores
 
 Shows server's currently displayed scoreboard in the sidebar slot.
+
+## Statuses
+You can modify the bot's "Playing" status via config. You can add as many texts as you want, the bot switches between them every 20 seconds.
+
+There are currently 2 parameters you can use in the statuses: `{tps}` and `{players}` which are replaced with the server's TPS and player count respectively.
 
 ## Blacklist
 In the config file, you can add words to be blacklisted, so that messages containing them will be blocked from being sent Minecraft -> Discord or vice-versa.

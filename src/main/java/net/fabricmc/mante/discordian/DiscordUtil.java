@@ -6,9 +6,9 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import java.awt.*;
 
 public class DiscordUtil {
-    public static void sendAdvancement(String text) {
+    public static void sendAdvancement(String text, String description) {
         if (Discordian.config.get("send_advancements").getAsBoolean())
-            sendEmbed(text, Color.CYAN);
+            sendEmbedWithFooter(text, description, Color.CYAN);
     }
 
     public static void sendJoinMessage(String text) {
@@ -18,6 +18,11 @@ public class DiscordUtil {
 
     public static void sendLeaveMessage(String text) {
         if (Discordian.config.get("send_player_leaves").getAsBoolean())
+            sendEmbed(text, Color.YELLOW);
+    }
+
+    public static void sendDeathMessage(String text) {
+        if (Discordian.config.get("send_player_deaths").getAsBoolean())
             sendEmbed(text, Color.RED);
     }
 
@@ -25,6 +30,15 @@ public class DiscordUtil {
         EmbedBuilder builder = new EmbedBuilder()
                 .setDescription(text)
                 .setColor(color);
+
+        Discordian.channel.sendMessage(builder.build()).queue();
+    }
+
+    private static void sendEmbedWithFooter(String text, String footer, Color color) {
+        EmbedBuilder builder = new EmbedBuilder()
+                .setDescription(text)
+                .setColor(color)
+                .setFooter(footer);
 
         Discordian.channel.sendMessage(builder.build()).queue();
     }
