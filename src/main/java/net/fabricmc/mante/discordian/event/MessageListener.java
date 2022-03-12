@@ -4,11 +4,12 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.MessageUpdateEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.fabricmc.mante.discordian.Discordian;
+import net.fabricmc.mante.discordian.AccountLinkDetails;
 import net.fabricmc.mante.discordian.DiscordUtil;
+import net.fabricmc.mante.discordian.Discordian;
 import net.minecraft.network.MessageType;
 import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.ScoreboardPlayerScore;
@@ -106,18 +107,31 @@ public class MessageListener extends ListenerAdapter {
     }
 
     void send(Text message) {
-        Discordian.server.getPlayerManager().broadcastChatMessage(
+        Discordian.server.getPlayerManager().broadcast(
                 message,
                 MessageType.CHAT,
                 Util.NIL_UUID);
     }
 
     @Override
-    public void onGuildMessageReceived(@NotNull GuildMessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
+        if (!event.isFromGuild()) {
+            String content = event.getMessage().getContentStripped();
+            for (AccountLinkDetails account : Discordian.accountLinkManager.pending) {
+                if (account.code.equals(content)) {
+                    Discordian.accountLinkManager.link(event.getAuthor().getId(), content);
+                    event.getMessage().reply("Account confirmed successfully!").queue();
+                    return;
+                }
+            }
+
+            return;
+        }
+
         if (Discordian.server == null) return;
 
         if (event.getMember() == null) return;
-        if (!event.getChannel().getId().equals(Discordian.channelID)) return;
+        if (!event.getChannel().equals(Discordian.channel)) return;
         if (event.getAuthor().isBot()) return;
 
         message = event.getMessage();
@@ -142,7 +156,7 @@ public class MessageListener extends ListenerAdapter {
             }
 
             if (message.getReferencedMessage() != null) {
-                if (!Discordian.config.get("send_replies").getAsBoolean())
+                if (!Discordian.configManager.config.get("send_replies").getAsBoolean())
                     return;
 
                 int replyColor = 0xffffff;
@@ -182,11 +196,11 @@ public class MessageListener extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMessageUpdate(@NotNull GuildMessageUpdateEvent event) {
+    public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
         if (Discordian.server == null) return;
 
         if (event.getMember() == null) return;
-        if (!event.getChannel().getId().equals(Discordian.channelID)) return;
+        if (!event.getChannel().equals(Discordian.channel)) return;
         if (event.getAuthor().isBot()) return;
 
         message = event.getMessage();
@@ -225,10 +239,8 @@ public class MessageListener extends ListenerAdapter {
 
     public void handleCommands() {
         switch (content.split(" ")[0].substring(1)) {
-            case "tps" -> {
-                message.getChannel().sendMessage("TPS: " + (Math.round(10000 / DiscordUtil.avgTick()) / 10d) + " (" + (Math.round(MathHelper.clamp(1000 / DiscordUtil.avgTick(), 0, 20) * 10) / 10d) + " effective, " + (Math.round(DiscordUtil.avgTick() * 10) / 10d) + " MSPT)")
-                        .reference(message).mentionRepliedUser(false).queue();
-            }
+            case "tps" -> message.getChannel().sendMessage("TPS: " + (Math.round(10000 / DiscordUtil.avgTick()) / 10d) + " (" + (Math.round(MathHelper.clamp(1000 / DiscordUtil.avgTick(), 0, 20) * 10) / 10d) + " effective, " + (Math.round(DiscordUtil.avgTick() * 10) / 10d) + " MSPT)")
+                    .reference(message).mentionRepliedUser(false).queue();
             case "players" -> {
                 String players = String.join(", ", Discordian.server.getPlayerNames());
                 int p = Discordian.server.getPlayerNames().length;
@@ -261,13 +273,13 @@ public class MessageListener extends ListenerAdapter {
                         .addField("Name", names, true)
                         .addField("Score", scores, true);
 
-                message.getChannel().sendMessage(embedBuilder.build())
+                message.getChannel().sendMessageEmbeds(embedBuilder.build())
                         .reference(message).mentionRepliedUser(false).queue();
             }
             default -> {
-                if (Discordian.config.get("op_role_id").getAsString().isEmpty())
+                if (Discordian.configManager.config.get("op_role_id").getAsString().isEmpty())
                     break;
-                if (member.getRoles().contains(message.getGuild().getRoleById(Discordian.config.get("op_role_id").getAsString()))) {
+                if (member.getRoles().contains(message.getGuild().getRoleById(Discordian.configManager.config.get("op_role_id").getAsString()))) {
                     Discordian.server.getCommandManager().execute(
                             Discordian.discordCommandSource(),
                             content);

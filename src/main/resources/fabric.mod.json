@@ -2,29 +2,31 @@
   "schemaVersion": 1,
   "id": "discordian",
   "version": "${version}",
+
   "name": "Discordian",
   "description": "Yet another easy to setup Fabric mod that connects Minecraft and Discord chats and provides you with most stuff you need when chatting.",
   "authors": [
-    "Mante"
+    "mantevian"
   ],
   "contact": {},
+
   "license": "MIT",
   "icon": "assets/discordian/icon.png",
+
   "environment": "*",
   "entrypoints": {
-    "main": [
-    ],
     "server": [
       "net.fabricmc.mante.discordian.Discordian"
     ]
   },
+
   "mixins": [
     "discordian.mixins.json"
   ],
+
   "depends": {
-    "fabricloader": ">=0.11.3",
+    "fabricloader": ">=0.13.3",
     "fabric": "*",
-    "minecraft": "1.17.x",
-    "java": ">=16"
+    "minecraft": ">=1.18"
   }
 }

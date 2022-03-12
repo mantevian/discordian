@@ -28,7 +28,7 @@ public class TellrawCommandMixin {
     @Inject(method = "register", at = @At(value = "HEAD"), cancellable = true)
     private static void register(CommandDispatcher<ServerCommandSource> dispatcher, CallbackInfo ci) {
         dispatcher.register((CommandManager.literal("tellraw").requires((serverCommandSource) -> serverCommandSource.hasPermissionLevel(2))).then(CommandManager.argument("targets", EntityArgumentType.players()).then(CommandManager.argument("message", TextArgumentType.text()).executes((commandContext) -> {
-            if (!Discordian.sendTellraw)
+            if (!Discordian.configManager.config.get("send_tellraw").getAsBoolean())
                 return 0;
 
             int i = 0;
@@ -41,14 +41,12 @@ public class TellrawCommandMixin {
                 serverPlayerEntity.sendSystemMessage(Texts.parse(commandContext.getSource(), TextArgumentType.getTextArgument(commandContext, "message"), serverPlayerEntity, 0), Util.NIL_UUID);
             }
 
-            TextChannel channel = Discordian.jda.getTextChannelById(Discordian.channelID);
-
-            if (players.containsAll(Discordian.server.getPlayerManager().getPlayerList()) && channel != null) {
+            if (players.containsAll(Discordian.server.getPlayerManager().getPlayerList()) && Discordian.channel != null) {
                 TextColor color = text.getStyle().getColor();
                 if (color == null)
                     color = TextColor.fromRgb(1);
 
-                channel.sendMessage(new EmbedBuilder()
+                Discordian.channel.sendMessageEmbeds(new EmbedBuilder()
                         .setDescription(text.getString())
                         .setColor(DiscordUtil.getDecColor(color.toString()))
                         .build()).queue();

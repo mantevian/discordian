@@ -16,12 +16,11 @@ public class PlayerAdvancementTrackerMixin {
     @Shadow
     private ServerPlayerEntity owner;
 
-    @Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V", shift = At.Shift.AFTER))
+    @Inject(method = "grantCriterion", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V", shift = At.Shift.AFTER))
     private void grantCriterion(Advancement advancement, String criterionName, CallbackInfoReturnable<Boolean> cir) {
         if (advancement.getDisplay() == null)
             return;
 
-        PlayerAdvancementTracker tracker = (PlayerAdvancementTracker) (Object) this;
         DiscordUtil.sendAdvancement(new TranslatableText("chat.type.advancement." + advancement.getDisplay().getFrame().getId(), owner.getDisplayName(), advancement.toHoverableText()).getString(), advancement.getDisplay().getDescription().getString());
     }
 }

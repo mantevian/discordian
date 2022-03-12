@@ -1,12 +1,10 @@
 package net.fabricmc.mante.discordian;
 
+import club.minnced.discord.webhook.WebhookClient;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.fabricmc.api.DedicatedServerModInitializer;
@@ -21,82 +19,66 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
-import java.util.ArrayList;
 
 public class Discordian implements DedicatedServerModInitializer {
     public static MinecraftServer server;
     public static Logger logger = LogManager.getLogger("Discord");
     public static JDA jda;
-    public static JsonObject config;
-    public static String channelID;
+    public static DiscordConfigManager configManager;
     public static TextChannel channel;
-    public static boolean sendTellraw;
+    public static Guild guild;
+    public static AccountLinkManager accountLinkManager;
+    public static WebhookClient webhook;
+    public static boolean useWebhook;
 
     @Override
     public void onInitializeServer() {
-        config = DiscordConfig.readConfig();
-        DiscordConfig.fixConfig();
+        configManager = new DiscordConfigManager();
+        configManager.updateConfig();
+        accountLinkManager = new AccountLinkManager();
+        DiscordLinkCommand.load();
 
-        channelID = config.get("channel_id").getAsString();
-        String token = config.get("token").getAsString();
+        useWebhook = false;
+
+        String token = configManager.config.get("token").getAsString();
 
         if (token.isEmpty()) {
-            logger.error("Missing Discord token!");
+            logger.error("Missing Discord token.");
             return;
         }
 
-        JDABuilder builder = JDABuilder.createDefault(token)
+        JDABuilder builder = JDABuilder
+                .createDefault(token)
                 .addEventListeners(new ReadyEventListener(), new MessageListener())
                 .enableIntents(GatewayIntent.GUILD_PRESENCES)
                 .enableCache(CacheFlag.CLIENT_STATUS, CacheFlag.ACTIVITY, CacheFlag.EMOTE, CacheFlag.ROLE_TAGS, CacheFlag.MEMBER_OVERRIDES);
         try {
             jda = builder.build();
         } catch (LoginException e) {
-            logger.error("Can't connect to Discord!");
+            logger.error("Can't connect to Discord. Make sure you've provided the correct token.");
             e.printStackTrace();
         }
 
         ServerLifecycleEvents.SERVER_STARTED.register(s -> {
             server = s;
-            channel = jda.getTextChannelById(channelID);
-            sendTellraw = config.get("send_tellraw").getAsBoolean();
-
-            if (channel == null) {
-                logger.error("Couldn't find the Discord channel!");
-                return;
-            }
-
-            channel.sendMessage(config.get("start_message").getAsString()).queue();
+            load();
+            channel.sendMessage(configManager.config.get("start_message").getAsString()).queue();
         });
 
-        ServerLifecycleEvents.SERVER_STOPPED.register(s -> {
-            TextChannel channel = jda.getTextChannelById(channelID);
-            if (channel == null)
-                return;
-
-            channel.sendMessage(config.get("stop_message").getAsString()).queue();
-        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(s ->
+                channel.sendMessage(configManager.config.get("stop_message").getAsString()).queue());
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) -> {
-            if (!success) {
-                channel.sendMessage(config.get("reload_fail_message").getAsString()).queue();
-                return;
+            if (!success)
+                channel.sendMessage(configManager.config.get("reload_fail_message").getAsString()).queue();
+            else {
+                load();
+                channel.sendMessage(configManager.config.get("reload_message").getAsString()).queue();
             }
-
-            channel = jda.getTextChannelById(channelID);
-            sendTellraw = config.get("send_tellraw").getAsBoolean();
-            if (channel == null) {
-                logger.error("Couldn't find the Discord channel!");
-                return;
-            }
-
-            config = DiscordConfig.readConfig();
-
-            channel.sendMessage(config.get("reload_message").getAsString()).queue();
         });
 
         ServerTickEvents.END_SERVER_TICK.register(s -> {
-            JsonArray strings = config.get("statuses").getAsJsonArray();
+            JsonArray strings = configManager.config.get("statuses").getAsJsonArray();
 
             for (int i = 0; i < strings.size(); i++) {
                 String str = strings.get(i).getAsString();
@@ -110,8 +92,36 @@ public class Discordian implements DedicatedServerModInitializer {
         });
     }
 
+    private void load() {
+        try {
+            channel = jda.getTextChannelById(configManager.config.get("channel_id").getAsString());
+        }
+        catch (NumberFormatException e) {
+            logger.error("Couldn't parse the provided channel ID.");
+            return;
+        }
+
+        if (channel == null) {
+            logger.error("Couldn't find the Discord channel. Make sure you've provided the correct ID.");
+            return;
+        }
+        guild = channel.getGuild();
+
+        if (configManager.config.get("use_webhook").getAsBoolean()) {
+            try {
+                webhook = WebhookClient.withUrl(configManager.config.get("webhook_url").getAsString());
+                useWebhook = true;
+            } catch (Exception e) {
+                logger.error("Couldn't load the webhook. Make sure you have created the webhook in #" + channel.getName() + " and provided correct details. Switching to no webhook mode. Details: " + e);
+                useWebhook = false;
+            }
+        }
+
+        configManager.updateConfig();
+    }
+
     public static ServerCommandSource discordCommandSource() {
-        int opLevel = config.get("op_level").getAsInt();
+        int opLevel = configManager.config.get("op_level").getAsInt();
         opLevel = MathHelper.clamp(opLevel, 1, 4);
 
         return new ServerCommandSource(
@@ -122,8 +132,13 @@ public class Discordian implements DedicatedServerModInitializer {
                 opLevel,
                 server.getCommandSource().getName(),
                 server.getCommandSource().getDisplayName(),
-                server.getCommandSource().getMinecraftServer(),
+                server.getCommandSource().getServer(),
                 server.getCommandSource().getEntity()
         );
+    }
+
+    public static Member getMember(String id) {
+        User user = jda.retrieveUserById(id).complete();
+        return guild == null ? null : guild.retrieveMember(user).complete();
     }
 }

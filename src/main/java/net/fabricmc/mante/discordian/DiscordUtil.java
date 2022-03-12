@@ -2,27 +2,31 @@ package net.fabricmc.mante.discordian;
 
 import com.google.gson.JsonElement;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DiscordUtil {
     public static void sendAdvancement(String text, String description) {
-        if (Discordian.config.get("send_advancements").getAsBoolean())
+        if (Discordian.configManager.config.get("send_advancements").getAsBoolean())
             sendEmbedWithFooter(text, description, Color.CYAN);
     }
 
     public static void sendJoinMessage(String text) {
-        if (Discordian.config.get("send_player_joins").getAsBoolean())
+        if (Discordian.configManager.config.get("send_player_joins").getAsBoolean())
             sendEmbed(text, Color.GREEN);
     }
 
     public static void sendLeaveMessage(String text) {
-        if (Discordian.config.get("send_player_leaves").getAsBoolean())
+        if (Discordian.configManager.config.get("send_player_leaves").getAsBoolean())
             sendEmbed(text, Color.YELLOW);
     }
 
     public static void sendDeathMessage(String text) {
-        if (Discordian.config.get("send_player_deaths").getAsBoolean())
+        if (Discordian.configManager.config.get("send_player_deaths").getAsBoolean())
             sendEmbed(text, Color.RED);
     }
 
@@ -31,7 +35,7 @@ public class DiscordUtil {
                 .setDescription(text)
                 .setColor(color);
 
-        Discordian.channel.sendMessage(builder.build()).queue();
+        Discordian.channel.sendMessageEmbeds(builder.build()).queue();
     }
 
     private static void sendEmbedWithFooter(String text, String footer, Color color) {
@@ -40,11 +44,11 @@ public class DiscordUtil {
                 .setColor(color)
                 .setFooter(footer);
 
-        Discordian.channel.sendMessage(builder.build()).queue();
+        Discordian.channel.sendMessageEmbeds(builder.build()).queue();
     }
 
     private static boolean configArrayContainsSubstring(String key, String value) {
-        for (JsonElement element : Discordian.config.get(key).getAsJsonArray()) {
+        for (JsonElement element : Discordian.configManager.config.get(key).getAsJsonArray()) {
             if (value.contains(element.getAsString()))
                 return true;
         }

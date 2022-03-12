@@ -1,6 +1,7 @@
 package net.fabricmc.mante.discordian.mixin;
 
-import net.dv8tion.jda.api.entities.TextChannel;
+import club.minnced.discord.webhook.send.WebhookMessageBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.fabricmc.mante.discordian.DiscordUtil;
 import net.fabricmc.mante.discordian.Discordian;
 import net.minecraft.server.filter.TextStream;
@@ -20,21 +21,31 @@ public abstract class ServerPlayNetworkHandlerMixin {
     @Shadow
     public ServerPlayerEntity player;
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Ljava/util/function/Function;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), method = "handleMessage", cancellable = true)
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Ljava/util/function/Function;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), method = "handleMessage")
     private void handleMessage(TextStream.Message message, CallbackInfo ci) {
-        String string = message.getRaw();
-        String msg = StringUtils.normalizeSpace(string);
-        Text text = new TranslatableText("chat.type.text", this.player.getDisplayName(), msg);
+        String raw = StringUtils.normalizeSpace(message.getRaw()).replaceAll("@everyone", "`@everyone`").replaceAll("@here", "`@here`");
+        String text = new TranslatableText("chat.type.text", this.player.getDisplayName(), raw).getString();
 
-        TextChannel channel = Discordian.jda.getTextChannelById(Discordian.channelID);
-        if (channel == null)
+        if (DiscordUtil.isBlacklistedMessageMTD(raw))
             return;
 
-        if (!DiscordUtil.isBlacklistedMessageMTD(text.getString()))
-            channel.sendMessage(text.getString()).queue();
+        if (Discordian.useWebhook && Discordian.accountLinkManager.isLinked(this.player.getUuidAsString())) {
+            WebhookMessageBuilder wmb = new WebhookMessageBuilder();
+
+            Member member = Discordian.getMember(Discordian.accountLinkManager.uuidToId(this.player.getUuidAsString()));
+            if (member != null) {
+                wmb.setAvatarUrl(member.getEffectiveAvatarUrl());
+                wmb.setUsername(member.getEffectiveName());
+                wmb.setContent(raw);
+                Discordian.webhook.send(wmb.build());
+                return;
+            }
+        }
+
+        Discordian.channel.sendMessage(text).queue();
     }
 
-    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcastChatMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), method = "onDisconnected", cancellable = true)
+    @Inject(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;broadcast(Lnet/minecraft/text/Text;Lnet/minecraft/network/MessageType;Ljava/util/UUID;)V"), method = "onDisconnected", cancellable = true)
     private void onDisconnected(Text reason, CallbackInfo ci) {
         DiscordUtil.sendLeaveMessage(new TranslatableText("multiplayer.player.left", this.player.getDisplayName()).getString());
     }

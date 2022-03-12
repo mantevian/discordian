@@ -11,12 +11,12 @@ import java.util.UUID;
 public class DiscordCommandOutput implements CommandOutput {
     @Override
     public void sendSystemMessage(Text message, UUID senderUuid) {
-        TextChannel channel = Discordian.jda.getTextChannelById(Discordian.channelID);
+        TextChannel channel = Discordian.channel;
 
         if (channel == null)
             return;
 
-        channel.sendMessage(new EmbedBuilder()
+        channel.sendMessageEmbeds(new EmbedBuilder()
                 .setDescription(message.getString())
                 .setColor(Color.getHSBColor(0, 0, 0))
                 .build()).queue();
