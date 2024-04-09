@@ -6,11 +6,10 @@ import net.minecraft.server.command.CommandOutput;
 import net.minecraft.text.Text;
 
 import java.awt.*;
-import java.util.UUID;
 
 public class DiscordCommandOutput implements CommandOutput {
     @Override
-    public void sendSystemMessage(Text message, UUID senderUuid) {
+    public void sendMessage(Text message) {
         TextChannel channel = Discordian.channel;
 
         if (channel == null)

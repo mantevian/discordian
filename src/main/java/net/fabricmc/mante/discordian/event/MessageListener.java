@@ -1,6 +1,6 @@
 package net.fabricmc.mante.discordian.event;
 
-import net.dv8tion.jda.api.EmbedBuilder;
+import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -10,18 +10,12 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.fabricmc.mante.discordian.AccountLinkDetails;
 import net.fabricmc.mante.discordian.DiscordUtil;
 import net.fabricmc.mante.discordian.Discordian;
-import net.minecraft.network.MessageType;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class MessageListener extends ListenerAdapter {
@@ -32,35 +26,35 @@ public class MessageListener extends ListenerAdapter {
     Message message;
 
     MutableText coloredText(String text, TextColor color, boolean bold) {
-        return new LiteralText(text).styled(style -> style
+        return Text.literal(text).styled(style -> style
                 .withColor(color)
                 .withBold(bold));
     }
 
     MutableText tooltipText(String text, String tooltip, TextColor color) {
-        return new LiteralText(text).styled(style -> style
+        return Text.literal(text).styled(style -> style
                 .withColor(color)
                 .withHoverEvent(new HoverEvent(
                         HoverEvent.Action.SHOW_TEXT,
-                        new LiteralText(tooltip))));
+                        Text.literal(tooltip))));
     }
 
     MutableText clickableText(String text, String tooltip, TextColor color, ClickEvent clickEvent) {
-        return new LiteralText(text).styled(style -> style
+        return Text.literal(text).styled(style -> style
                 .withColor(color)
                 .withHoverEvent(new HoverEvent(
                         HoverEvent.Action.SHOW_TEXT,
-                        new LiteralText(tooltip)))
+                        Text.literal(tooltip)))
                 .withClickEvent(clickEvent)
         );
     }
 
     MutableText arrowText() {
-        return coloredText(" » ", TextColor.parse("gray"), false);
+        return coloredText(" » ", TextColor.fromFormatting(Formatting.GRAY), false);
     }
 
     MutableText replyText() {
-        return coloredText("┌ ", TextColor.parse("gray"), false);
+        return coloredText("┌ ", TextColor.fromFormatting(Formatting.GRAY), false);
     }
 
     int multiplyColor(int color, double m) {
@@ -83,7 +77,7 @@ public class MessageListener extends ListenerAdapter {
         if (message.getMember() != null)
             name = message.getMember().getEffectiveName();
 
-        MutableText text = new LiteralText("");
+        MutableText text = Text.literal("");
         if (reply)
             text.append(replyText());
 
@@ -98,19 +92,16 @@ public class MessageListener extends ListenerAdapter {
         text.append(clickableText(name, message.getAuthor().getAsTag() + " (click to mention)", TextColor.fromRgb(color),
                 new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "<@" + message.getAuthor().getId() + ">")))
                 .append(arrowText())
-                .append(tooltipText(content, message.getTimeCreated().toString(), reply ? TextColor.parse("gray") : TextColor.parse("white")));
+                .append(tooltipText(content, message.getTimeCreated().toString(), reply ? TextColor.fromFormatting(Formatting.GRAY) : TextColor.fromFormatting(Formatting.WHITE)));
 
         if (edited)
-            text.append(coloredText(" [edited]", TextColor.parse("gray"), false));
+            text.append(coloredText(" [edited]", TextColor.fromFormatting(Formatting.GRAY), false));
 
         return text;
     }
 
     void send(Text message) {
-        Discordian.server.getPlayerManager().broadcast(
-                message,
-                MessageType.CHAT,
-                Util.NIL_UUID);
+        Discordian.server.getPlayerManager().broadcast(message, false);
     }
 
     @Override
@@ -160,6 +151,7 @@ public class MessageListener extends ListenerAdapter {
                     return;
 
                 int replyColor = 0xffffff;
+                System.out.println(message.getReferencedMessage().getMember());
                 if (message.getReferencedMessage().getMember() != null)
                     replyColor = message.getReferencedMessage().getMember().getColorRaw();
 
@@ -181,13 +173,13 @@ public class MessageListener extends ListenerAdapter {
             send(clickableText(name, author.getAsTag() + " (click to mention)", TextColor.fromRgb(color),
                     new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "<@" + author.getId() + ">"))
                     .append(arrowText())
-                    .append(new LiteralText(info).styled(style -> style
-                            .withColor(TextColor.parse("blue"))
+                    .append(Text.literal(info).styled(style -> style
+                            .withColor(TextColor.fromFormatting(Formatting.BLUE))
                             .withBold(false)
                             .withFormatting(Formatting.UNDERLINE)
                             .withHoverEvent(new HoverEvent(
                                     HoverEvent.Action.SHOW_TEXT,
-                                    new LiteralText("Click to open")))
+                                    Text.literal("Click to open")))
                             .withClickEvent(new ClickEvent(
                                     ClickEvent.Action.OPEN_URL,
                                     atts.get(0).getUrl()))
@@ -250,42 +242,19 @@ public class MessageListener extends ListenerAdapter {
                 message.getChannel().sendMessage(text)
                         .reference(message).mentionRepliedUser(false).queue();
             }
-            case "scores" -> {
-                ScoreboardObjective objective = Discordian.server.getScoreboard().getObjectiveForSlot(1);
-                if (objective == null) {
-                    message.getChannel().sendMessage("There is no displayed objective at the time.")
-                            .reference(message).mentionRepliedUser(false).queue();
-                    return;
-                }
-                EmbedBuilder embedBuilder = new EmbedBuilder()
-                        .setTitle(objective.getName());
-                String names = "";
-                String scores = "";
-                Collection<ScoreboardPlayerScore> playerScores = Discordian.server.getScoreboard().getAllPlayerScores(objective);
-                Collections.reverse((List<ScoreboardPlayerScore>) playerScores);
-                for (ScoreboardPlayerScore playerScore : playerScores) {
-                    if (names.concat(playerScore.getPlayerName() + "\n").length() < 2000) {
-                        names = names.concat("`" + playerScore.getPlayerName() + "`\n");
-                        scores = scores.concat(playerScore.getScore() + "\n");
-                    }
-                }
-                embedBuilder
-                        .addField("Name", names, true)
-                        .addField("Score", scores, true);
-
-                message.getChannel().sendMessageEmbeds(embedBuilder.build())
-                        .reference(message).mentionRepliedUser(false).queue();
-            }
             default -> {
-                if (Discordian.configManager.config.get("op_role_id").getAsString().isEmpty())
-                    break;
-                if (member.getRoles().contains(message.getGuild().getRoleById(Discordian.configManager.config.get("op_role_id").getAsString()))) {
-                    Discordian.server.getCommandManager().execute(
-                            Discordian.discordCommandSource(),
-                            content);
-                    Discordian.logger.log(Level.INFO, author.getAsTag() + " executed command: " + content);
-                } else
-                    Discordian.logger.log(Level.INFO, author.getAsTag() + " tried to execute command but didn't have permissions to do so: " + content);
+                int level = 0;
+                String id = message.getAuthor().getId();
+
+                JsonObject obj = Discordian.configManager.config.get("discord_operators").getAsJsonObject();
+
+                if (obj.has(id)) {
+                    level = obj.get(id).getAsInt();
+                }
+
+                Discordian.server.getCommandManager().executeWithPrefix(Discordian.discordCommandSource(level), content);
+
+                Discordian.logger.log(Level.INFO, author.getAsTag() + " executed command: " + content);
             }
         }
     }

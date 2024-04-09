@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.security.auth.login.LoginException;
+import java.util.Random;
 
 public class Discordian implements DedicatedServerModInitializer {
     public static MinecraftServer server;
@@ -30,13 +31,14 @@ public class Discordian implements DedicatedServerModInitializer {
     public static AccountLinkManager accountLinkManager;
     public static WebhookClient webhook;
     public static boolean useWebhook;
+    public static final Random RANDOM = new Random();
 
     @Override
     public void onInitializeServer() {
         configManager = new DiscordConfigManager();
         configManager.updateConfig();
         accountLinkManager = new AccountLinkManager();
-        DiscordLinkCommand.load();
+        DiscordCommand.load();
 
         useWebhook = false;
 
@@ -68,15 +70,6 @@ public class Discordian implements DedicatedServerModInitializer {
         ServerLifecycleEvents.SERVER_STOPPED.register(s ->
                 channel.sendMessage(configManager.config.get("stop_message").getAsString()).queue());
 
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) -> {
-            if (!success)
-                channel.sendMessage(configManager.config.get("reload_fail_message").getAsString()).queue();
-            else {
-                load();
-                channel.sendMessage(configManager.config.get("reload_message").getAsString()).queue();
-            }
-        });
-
         ServerTickEvents.END_SERVER_TICK.register(s -> {
             JsonArray strings = configManager.config.get("statuses").getAsJsonArray();
 
@@ -92,18 +85,18 @@ public class Discordian implements DedicatedServerModInitializer {
         });
     }
 
-    private void load() {
+    public static int load() {
         try {
             channel = jda.getTextChannelById(configManager.config.get("channel_id").getAsString());
         }
         catch (NumberFormatException e) {
             logger.error("Couldn't parse the provided channel ID.");
-            return;
+            return 0;
         }
 
         if (channel == null) {
             logger.error("Couldn't find the Discord channel. Make sure you've provided the correct ID.");
-            return;
+            return 0;
         }
         guild = channel.getGuild();
 
@@ -118,10 +111,10 @@ public class Discordian implements DedicatedServerModInitializer {
         }
 
         configManager.updateConfig();
+        return 1;
     }
 
-    public static ServerCommandSource discordCommandSource() {
-        int opLevel = configManager.config.get("op_level").getAsInt();
+    public static ServerCommandSource discordCommandSource(int opLevel) {
         opLevel = MathHelper.clamp(opLevel, 1, 4);
 
         return new ServerCommandSource(

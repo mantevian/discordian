@@ -2,12 +2,8 @@ package net.fabricmc.mante.discordian;
 
 import com.google.gson.JsonElement;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DiscordUtil {
     public static void sendAdvancement(String text, String description) {
@@ -47,9 +43,18 @@ public class DiscordUtil {
         Discordian.channel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    private static boolean configArrayContainsSubstring(String key, String value) {
+    public static boolean configArrayContainsSubstring(String key, String value) {
         for (JsonElement element : Discordian.configManager.config.get(key).getAsJsonArray()) {
             if (value.contains(element.getAsString()))
+                return true;
+        }
+
+        return false;
+    }
+
+    public static boolean configArrayContainsString(String key, String value) {
+        for (JsonElement element : Discordian.configManager.config.get(key).getAsJsonArray()) {
+            if (value.equals(element.getAsString()))
                 return true;
         }
 
@@ -88,7 +93,7 @@ public class DiscordUtil {
     }
 
     public static double avgTick() {
-        long[] ticks = Discordian.server.lastTickLengths;
+        long[] ticks = Discordian.server.getTickTimes();
         double avgTick = 0;
         for (long l : ticks)
             avgTick += l;
