@@ -1,10 +1,16 @@
 package net.fabricmc.mante.discordian;
 
 import net.dv8tion.jda.api.entities.Member;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameMode;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -66,6 +72,16 @@ public class AccountLinkManager {
                             Text.literal("Your account has been linked to ").styled(style -> style.withColor(TextColor.fromFormatting(Formatting.GREEN)))
                                     .append(Text.literal(member.getUser().getAsTag()).styled(style -> style.withColor(TextColor.fromFormatting(Formatting.YELLOW)))),
                             false);
+
+                    if (Discordian.configManager.config.get("require_link_to_play").getAsBoolean()) {
+                        player.changeGameMode(GameMode.DEFAULT);
+                        ServerWorld spawnWorld = Discordian.server.getWorld(player.getSpawnPointDimension());
+                        BlockPos spawnPos = player.getSpawnPointPosition();
+                        if (spawnPos == null) {
+                            spawnPos = Discordian.server.getOverworld().getSpawnPos();
+                        }
+                        player.teleport(spawnWorld, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), 0.0f, 0.0f);
+                    }
                 }
 
                 return;

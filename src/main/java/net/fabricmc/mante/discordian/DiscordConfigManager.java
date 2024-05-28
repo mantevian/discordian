@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 public class DiscordConfigManager {
-    private final int VERSION = 4;
+    private final int VERSION = 5;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
     public JsonObject config;
@@ -74,6 +74,7 @@ public class DiscordConfigManager {
         jsonObject.add("statuses", statuses);
         jsonObject.add("linked_accounts", new JsonObject());
         jsonObject.addProperty("format", "<${name}> ${message}");
+        jsonObject.addProperty("require_link_to_play", false);
         return jsonObject;
     }
 
@@ -86,8 +87,7 @@ public class DiscordConfigManager {
                 Files.writeString(path, gson.toJson(defaultConfig()));
             }
             String read = Files.readString(path);
-            JsonParser jsonParser = new JsonParser();
-            return jsonParser.parse(read).getAsJsonObject();
+            return JsonParser.parseString(read).getAsJsonObject();
         } catch (IOException e) {
             Discordian.logger.error("Can't load configurations for Discord Mod!");
             e.printStackTrace();

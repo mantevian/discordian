@@ -1,10 +1,10 @@
 plugins {
-    id 'fabric-loom' version '1.4-SNAPSHOT'
+    id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
 }
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
+sourceCompatibility = JavaVersion.VERSION_21
+targetCompatibility = JavaVersion.VERSION_21
 
 version = project.mod_version
 group = project.maven_group
@@ -37,7 +37,7 @@ dependencies {
 
     include(implementation("club.minnced:discord-webhooks:0.7.5"))
 
-    modImplementation include("eu.pb4:placeholder-api:2.0.0-beta.7+1.19")
+    modImplementation include("eu.pb4:placeholder-api:2.4.0-pre.1+1.20.5")
 }
 
 processResources {
@@ -49,7 +49,7 @@ processResources {
     }
 }
 
-def targetJavaVersion = 17
+def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
     // ensure that the encoding is set to UTF-8, no matter what the system default is
     // this fixes some edge cases with special characters not displaying correctly

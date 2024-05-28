@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.fabricmc.mante.discordian.DiscordUtil;
 import net.fabricmc.mante.discordian.Discordian;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.TextArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -24,8 +25,8 @@ import java.util.Iterator;
 @Mixin(TellRawCommand.class)
 public class TellrawCommandMixin {
     @Inject(method = "register", at = @At(value = "HEAD"), cancellable = true)
-    private static void register(CommandDispatcher<ServerCommandSource> dispatcher, CallbackInfo ci) {
-        dispatcher.register((CommandManager.literal("tellraw").requires((serverCommandSource) -> serverCommandSource.hasPermissionLevel(2))).then(CommandManager.argument("targets", EntityArgumentType.players()).then(CommandManager.argument("message", TextArgumentType.text()).executes((commandContext) -> {
+    private static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CallbackInfo ci) {
+        dispatcher.register((CommandManager.literal("tellraw").requires((serverCommandSource) -> serverCommandSource.hasPermissionLevel(2))).then(CommandManager.argument("targets", EntityArgumentType.players()).then(CommandManager.argument("message", TextArgumentType.text(commandRegistryAccess)).executes((commandContext) -> {
             if (!Discordian.configManager.config.get("send_tellraw").getAsBoolean())
                 return 0;
 
