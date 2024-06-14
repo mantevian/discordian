@@ -45,5 +45,6 @@ Discord, but can be used in-game as well:
 Please see the [Releases](https://github.com/mantevian/discordian/releases) page to see available downloads.
 
 **IMPORTANT:** Since Discordian 2.0, you need to
-have [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) installed on your server to run
+have [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin)
+and [YetAnotherConfigLib](https://modrinth.com/mod/yacl) installed on your server to run
 Discordian.
