@@ -1,32 +1,31 @@
 {
-  "schemaVersion": 1,
-  "id": "discordian",
-  "version": "${version}",
-
-  "name": "Discordian",
-  "description": "Yet another easy to setup Fabric mod that connects Minecraft and Discord chats and provides you with most stuff you need when chatting.",
-  "authors": [
-    "mantevian"
-  ],
-  "contact": {},
-
-  "license": "MIT",
-  "icon": "assets/discordian/icon.png",
-
-  "environment": "*",
-  "entrypoints": {
-    "server": [
-      "net.fabricmc.mante.discordian.Discordian"
-    ]
-  },
-
-  "mixins": [
-    "discordian.mixins.json"
-  ],
-
-  "depends": {
-    "fabricloader": ">=0.13.0",
-    "fabric": "*",
-    "minecraft": ">=1.18"
-  }
+	"schemaVersion": 1,
+	"id": "discordian",
+	"version": "${version}",
+	"name": "Discordian",
+	"description": "Yet another easy to setup Fabric mod that connects Minecraft and Discord chats and provides you with most stuff you need when chatting.",
+	"authors": [
+		"mantevian"
+	],
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/discordian/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"server": [
+			{
+				"adapter": "kotlin",
+				"value": "net.fabricmc.mante.discordian.Discordian"
+			}
+		]
+	},
+	"mixins": [
+		"discordian.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"fabric": "*",
+		"minecraft": ">=1.20.5",
+		"fabric-language-kotlin": ">=1.11.0+kotlin.2.0.0"
+	}
 }

@@ -23,7 +23,7 @@ public class PlayerAdvancementTrackerMixin {
 	private void grantCriterion(AdvancementEntry advancement, String criterionName, CallbackInfoReturnable<Boolean> cir) {
 		advancement.value().display().ifPresent((display) -> {
 			if (display.shouldAnnounceToChat() && this.owner.getWorld().getGameRules().getBoolean(GameRules.ANNOUNCE_ADVANCEMENTS)) {
-				DiscordUtil.sendAdvancement(Text.translatable("chat.type.advancement." + display.getFrame().asString(), this.owner.getDisplayName(), Advancement.getNameFromIdentity(advancement)).getString(), advancement.value().display().get().getDescription().getString());
+				DiscordUtil.INSTANCE.sendAdvancement(Text.translatable("chat.type.advancement." + display.getFrame().asString(), this.owner.getDisplayName(), Advancement.getNameFromIdentity(advancement)).getString(), advancement.value().display().get().getDescription().getString());
 			}
 		});
 	}
