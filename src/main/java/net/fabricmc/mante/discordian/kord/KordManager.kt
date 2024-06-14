@@ -98,11 +98,12 @@ class KordManager {
 
 	companion object Utils {
 		suspend fun Member.getEffectiveColor(): Color {
-			return roles.toList(mutableListOf()).sortedBy { it.rawPosition }.find { it.color.rgb != 0 }?.color ?: Color(
-				255,
-				255,
-				255
-			)
+			return roles.toList(mutableListOf()).sortedByDescending { it.rawPosition }.find { it.color.rgb != 0 }?.color
+				?: Color(
+					255,
+					255,
+					255
+				)
 		}
 	}
 }
