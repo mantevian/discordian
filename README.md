@@ -1,50 +1,49 @@
 # Discordian
-Yet another easy to setup Fabric mod that connects Minecraft and Discord chats and provides you with most stuff you need when chatting.
+
+Yet another easy to set up Fabric mod that connects Minecraft and Discord chats and provides you with most stuff you
+need when chatting, as well as a more advanced feature for linking Minecraft and Discord accounts.
 
 # Setting up
-1. Make a bot at https://discord.com/developers/applications. Create an Application, then a bot for it, and find a Bot Token. In the Bot section, scroll down and enable Presence Intent and Server Members Intent. There are a lot of tutorials on doing this on YouTube.
-2. Invite your bot to your server using the link: https://discord.com/oauth2/authorize?scope=bot&client_id=12345 where you put your bot's Application ID instead of 12345.
+
+1. Make a bot at https://discord.com/developers/applications. Create an Application, then a bot for it, and find a Bot
+   Token. In the Bot section, scroll down and enable Presence Intent and Server Members Intent. There are a lot of
+   tutorials on doing this on YouTube.
+2. Invite your bot to your server using the link: https://discord.com/oauth2/authorize?scope=bot&client_id=12345 where
+   you put your bot Application ID instead of 12345.
 3. Make sure you have Fabric installed and put the mod .jar into your mods folder, then run the server.
-4. Upon running first time a config file will be created under `config/mante/discordian.json`. Open it and put in your bot's token and the ID of the channel in your Discord server that should be linked to Minecraft.
-5. Restart the server, if you see the bot go online that means you've done everything right! You can edit the config file and run `/reload` to apply the changes.
+4. Upon running first time a config file will be created under `config/mantevian/discordian.json5`. Open it and put in
+   your bot token and the ID of the channel in your Discord server that should be linked to Minecraft.
+5. Restart the server, if you see the bot go online that means you've done everything right! You can edit the config
+   file and run `/discord reload` to apply the changes.
 
-# What can the mod do?
-This mod, obviously, provides connection between your Minecraft and your Discord chats. And it does so in a fancy clean way.
-## Minecraft -> Discord
-* Sends chat messages, advancements, deaths, player joins and leaves to your Discord chat. Everything notable is sent in an embed.
-* `/tellraw @a` is sent in an embed colored with whatever the first text component is colored.
+# What it does
 
-![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315065536184340/DiscordCanary_W2GYPmj6rW.png "What it looks like in Discord")
+When settings are left by default, the Discord bot will send messages in your Discord channel about various events, such
+as players joining, leaving, chatting, getting advancements and dying.
 
-## Discord -> Minecraft
-* When you type a message in Discord it gets sent to the Minecraft chat. Discordian respects a user's nickname color and will always show it in Minecraft!
-* To avoid any confusion, the Minecraft players will also know when someone edits or replies to another message in Discord.
-* Click on someone's name in the Minecraft chat to insert a mention of them into your chat text box.
+Players can use the `/discord` command in-game to link their Discord account to their Minecraft player. Account linking
+is used for several things:
 
-![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315101800005632/javaw_IGC3qm0r9B.png "What it looks like in Minecraft")
-![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315070061576222/javaw_AvLR4ocMgJ.png "Hover over someone's name")
-![alt text](https://cdn.discordapp.com/attachments/500368559084666890/853315080631353415/javaw_YWLSm3BkKG.png "Click on someone's name")
+* if the mod is configured to use a webhook, Minecraft messages of linked players will be displayed using a webhook (
+  with that player's Discord name and avatar);
+* if the mod is configured to restrict access for unlinked players, players will not be able to interact with the world
+  until they link their account (this puts them below the world, sets their gamemode to spectator and doesn't allow them
+  to leave).
 
-## Commands
-Currently Discordian has 3 commands that are used in the Discord chat, and you can add a Discord role that will work as Operator access in-game. Users with this role can use any Minecraft command in the Discord chat.
+Additionally, in-game commands can be run using the Discord chat, including commands added by other mods. In order to
+use operator commands from Discord, assign your Discord user ID to
+an [OP level](https://minecraft.wiki/w/Permission_level) in the configuration file.
 
-Commands available for everyone:
-> /players
+Other than `/discord` used for linking accounts, Discordian also adds 2 utility commands which are intended to use in
+Discord, but can be used in-game as well:
 
-Shows the player list.
+* `/tps` to see the server's ticks per second;
+* `/players` to see who is online at the moment.
 
-> /tps
+# Download
 
-Shows server's TPS (ticks per second).
+Please see the [Releases](https://github.com/mantevian/discordian/releases) page to see available downloads.
 
-> /scores
-
-Shows server's currently displayed scoreboard in the sidebar slot.
-
-## Statuses
-You can modify the bot's "Playing" status via config. You can add as many texts as you want, the bot switches between them every 20 seconds.
-
-There are currently 2 parameters you can use in the statuses: `{tps}` and `{players}` which are replaced with the server's TPS and player count respectively.
-
-## Blacklist
-In the config file, you can add words to be blacklisted, so that messages containing them will be blocked from being sent Minecraft -> Discord or vice-versa.
+**IMPORTANT:** Since Discordian 2.0, you need to
+have [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) installed on your server to run
+Discordian.
